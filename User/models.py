@@ -8,19 +8,25 @@ from hashlib import sha1
 from django.core.validators import EmailValidator
 
 class User(models.Model):
-    login = models.CharField(max_length=20, blank=False, unique=True, verbose_name=u"Login")
-    password = models.CharField(blank=False, unique=True, verbose_name=u"Password")
+    username = models.CharField(max_length=20, blank=False, unique=True, verbose_name=u"Login")
+    password = models.CharField(max_length=100, blank=False, unique=True, verbose_name=u"Password")
     email = models.EmailField(blank=False, verbose_name="E-mail")
     status = models.IntegerField(blank=False, default=0)
 
-    def __init__(self):
-        print "Init"
-        ### TODO ###
+    def saveUserObject(self, login, password, email):
+        if self.validate(login, password, email):
+            self.login = login
+            self.password = self.passwordAsSHA1(password)
+            self.email = email
+            self.status = 0
+            self.save()
+            print u"User added"
 
-    def passwordAsSHA1(password):
+
+    def passwordAsSHA1(self, password):
         return sha1(str(password)).hexdigest()
 
-    def validate(login, password, email):
+    def validate(self, login, password, email):
         # Method to validate data before save model
         ret = True
         logstring = u""
