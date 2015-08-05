@@ -1,18 +1,23 @@
 # coding=UTF-8
 
-from django.conf.urls import include, url
+from django.conf.urls import include, url, patterns
 # from django.contrib import admin
 
-
 # REST extensions
-from rest_framework import routers
+from rest_framework.urlpatterns import format_suffix_patterns
 from User import views
 
-router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
 
 urlpatterns = [
-    # url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^$', views.login),
+    url(r'^login/$', views.login),
+    url(r'^logout/$', views.logout),
+
+    # User app
+    url(r'^users/$', views.user_list),
+    url(r'^users/(?P<pk>[0-9]+)/$', views.user_detail),
+    url(r'^token/$', views.token_detail),
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
+
