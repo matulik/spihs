@@ -4,9 +4,10 @@ from User.models import User
 from rest_framework import serializers
 
 class UserSerializer(serializers.Serializer):
+    token - serializers  ## TODO RELATIONS ##
     id = serializers.IntegerField(required=False)
     username = serializers.CharField(max_length=20, required=True)
-    password = serializers.CharField(max_length=100, required=True)
+    password = serializers.CharField(max_length=20, required=True)
     email = serializers.EmailField(allow_blank=False)
     status = serializers.IntegerField(read_only=False, required=False)
 
@@ -23,4 +24,8 @@ class UserSerializer(serializers.Serializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'password', 'email', 'status')
+        fields = ('id', 'username', 'password', 'email', 'status', 'token')
+
+# from User.models import User
+# u = User()
+# u.saveUserObject("admin","admin","admin@adm.in")

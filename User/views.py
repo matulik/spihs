@@ -31,6 +31,7 @@ def login(request):
         if user.passwordCompare(password):
             user.login(request)
             msg = 'Login successfully'
+            print msg
             return redirect('/users/')
         else:
             msg = 'Error. Wrong password.'
