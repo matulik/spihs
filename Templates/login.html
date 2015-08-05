@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static "css/styles.css" %}">
+</head>
+<body>
+Login<br>
+
+<form action="/login/" method="post">
+    <input name="username" id="username" type="text" placeholder="username">
+    <br>
+    <input name="password" id="password" type="password" placeholder="password">
+    <br>
+    <button type="submit">Login</button>
+</form>
+
+{{ msg }}
+</body>
+</html>

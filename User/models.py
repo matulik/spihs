@@ -28,6 +28,12 @@ class User(models.Model):
             self.save()
             print u"User added"
 
+    def passwordCompare(self, password):
+        if self.password == self.passwordAsSHA1(password):
+            return True
+        else:
+            return False
+
     def passwordAsSHA1(self, password):
         return sha1(str(password)).hexdigest()
 
@@ -54,14 +60,19 @@ class User(models.Model):
         request.session['login'] = True
         request.session['id'] = self.id
         request.session.set_expiry(sessionTimeout)
+        # Model status set
+        self.status = 1
+        print u'Login ' + self.username + ' successfully'
         return True
 
     def logout(self, request):
         request.session.flush()
         request.session['login'] = False
         request.session['id'] = None
+        self.status = 0
 
-    def userAuth(self, request):
+    @staticmethod
+    def userAuth(request):
         if not request.session.get('login', None):
             return False
         elif request.session['login'] == True:
