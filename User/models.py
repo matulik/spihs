@@ -13,9 +13,9 @@ class User(models.Model):
     email = models.EmailField(blank=False, verbose_name="E-mail")
     status = models.IntegerField(blank=False, default=0)
 
-    def saveUserObject(self, login, password, email):
-        if self.validate(login, password, email):
-            self.login = login
+    def saveUserObject(self, username, password, email):
+        if self.validate(username, password, email):
+            self.username = username
             self.password = self.passwordAsSHA1(password)
             self.email = email
             self.status = 0

@@ -21,4 +21,4 @@ class UserSerializer(serializers.Serializer):
 
     class Meta:
         model = User
-        fields = ('login', 'password', 'email', 'status')
+        fields = ('username', 'password', 'email', 'status')
