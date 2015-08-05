@@ -13,9 +13,11 @@ from string import ascii_uppercase
 from random import choice
 from django.utils import timezone
 
+
 def defaultToken():
     md5token = (md5(defaulTokenString)).hexdigest()
     return md5token
+
 
 class Token(models.Model):
     token = models.CharField(max_length=32, blank=False, default=defaultToken)
@@ -39,7 +41,7 @@ class User(models.Model):
     password = models.CharField(max_length=100, blank=False, unique=True, verbose_name=u"Password")
     email = models.EmailField(blank=False, verbose_name="E-mail")
     status = models.IntegerField(blank=False, default=0)
-    token = models.ForeignKey(Token)
+    token = models.ForeignKey(Token, related_name='token_md5')
 
     def createNewToken(self):
         token = Token()
@@ -47,12 +49,13 @@ class User(models.Model):
         return token
 
     def save(self, *args, **kwargs):
+        # Cheking if not null
         if not self.password:
             self.password = self.passwordAsSHA1(self.password)
-        if self.status < -1 and self.status > 4:
-            self.status = 0
         if not self.token:
             self.token = self.createNewToken()
+        if self.status < -1 and self.status > 4:
+            self.status = 0
         super(User, self).save(*args, **kwargs)
 
     def saveUserObject(self, username, password, email):
@@ -66,10 +69,6 @@ class User(models.Model):
             print u"User added"
 
     def passwordCompare(self, password):
-        print self.username
-        print self.password
-        print self.passwordAsSHA1(password)
-
         if self.password == self.passwordAsSHA1(password):
             return True
         else:
@@ -102,24 +101,46 @@ class User(models.Model):
         request.session['id'] = self.id
         request.session.set_expiry(sessionTimeout)
         # Set new token
-        self.token.token = self.token.generateToken()
-        # Model status set
+        token = Token.objects.get(id=self.token_id)
+        token.token = token.generateToken()
+        token.save()
+        request.session['token'] = self.token.token
+        # Set model status
         self.status = 1
-        print u'Login ' + self.username + ' successfully'
+        self.save()
+        print u'Login ' + self.username + ' successfully with token ' + self.token.token
         return True
 
     def logout(self, request):
         request.session.flush()
         request.session['login'] = False
         request.session['id'] = None
-        self.token.token = defaultToken()
+        request.session['token'] = None
+        # Set default token
+        token = Token.objects.get(id=self.token_id)
+        token.token = defaultToken()
+        token.save()
+        # Set model status
         self.status = 0
+        self.save()
 
     @staticmethod
-    def userAuth(request):
+    def getUserToken(id):
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            print 'Token for user doesnt exist'
+            return None
+        return user.token.token
+
+    @staticmethod
+    def userAuth(request, tokkening):
         if not request.session.get('login', None):
             return False
         elif request.session['login'] == True:
+            if tokkening == True:
+                if str(request.session['token']) != str(User.getUserToken(request.session['id'])):
+                    return False
             uid = request.session['id']
             if User.objects.filter(id=uid).exists():
                 user = User.objects.get(id=uid)

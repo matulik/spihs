@@ -6,13 +6,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from User.serializers import UserSerializer
-from User.models import User
+from User.serializers import UserSerializer, TokenSerializer
+from User.models import User, Token
 
 
 @csrf_exempt
 def login(request):
-    if User.userAuth(request):
+    if User.userAuth(request, tokkening=True):
         return redirect('/users/')
     if request.method == 'POST':
         print 'loging..'
@@ -40,9 +40,34 @@ def login(request):
         return render_to_response('login.html', context_instance=RequestContext(request))
 
 
+@csrf_exempt
+def logout(request):
+    if User.userAuth(request, tokkening=True):
+        user = User.objects.get(id=request.session['id'])
+        user.logout(request)
+        return redirect('/')
+    else:
+        return redirect('/')
+
+
+@api_view(['GET'])
+def token_detail(request, format=None):
+    if User.userAuth(request, tokkening=False) == False:
+        print u"Access denied"
+        return render_to_response('denied.html', context_instance=RequestContext(request))
+
+    if request.method == 'GET':
+        try:
+            user = User.objects.get(id=request.session['id'])
+            token = Token.objects.get(id=user.token_id)
+        except Token.DoesNotExist or User.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = TokenSerializer(token)
+        return Response(serializer.data)
+
 @api_view(['GET', 'POST'])
 def user_list(request, format=None):
-    if User.userAuth(request) == False:
+    if User.userAuth(request, tokkening=True) == False:
         print u"Access denied"
         return render_to_response('denied.html', context_instance=RequestContext(request))
 
@@ -61,7 +86,7 @@ def user_list(request, format=None):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_detail(request, pk, format=None):
-    if User.userAuth(request) == False:
+    if User.userAuth(request, tokkening=True) == False:
         print u"Access denied"
         return Response(status=status.HTTP_403_FORBIDDEN)
 
