@@ -13,6 +13,12 @@ class User(models.Model):
     email = models.EmailField(blank=False, verbose_name="E-mail")
     status = models.IntegerField(blank=False, default=0)
 
+    def save(self, *args, **kwargs):
+        self.password = self.passwordAsSHA1(self.password)
+        if self.status <-1 and self.status > 4:
+            self.status = 0
+        super(User, self).save(*args, **kwargs)
+
     def saveUserObject(self, username, password, email):
         if self.validate(username, password, email):
             self.username = username
@@ -21,7 +27,6 @@ class User(models.Model):
             self.status = 0
             self.save()
             print u"User added"
-
 
     def passwordAsSHA1(self, password):
         return sha1(str(password)).hexdigest()
