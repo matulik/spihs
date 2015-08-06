@@ -13,7 +13,7 @@ from User.models import User, Token
 @csrf_exempt
 def login(request):
     if User.userAuth(request, tokkening=True):
-        return redirect('/users/')
+        return redirect('/token/')
     if request.method == 'POST':
         print 'loging..'
         username = request.POST['username']

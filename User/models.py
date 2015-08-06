@@ -1,7 +1,7 @@
 # coding=UTF-8
 
 # Session timeout variable
-sessionTimeout = 500
+sessionTimeout = 1000
 defaulTokenString = u'logout'
 
 # Session expired imports
@@ -16,6 +16,10 @@ from string import ascii_uppercase
 from random import choice
 from django.utils import timezone
 
+def sessionEndHandler(sender, **kwargs):
+    print "session %s ended" % kwargs.get('instance').session_key
+
+models.signals.pre_delete.connect(sessionEndHandler, sender=Session)
 
 ## TODO move as class method ##
 def defaultToken():
@@ -161,5 +165,4 @@ class User(models.Model):
                 if user.status >= 0:
                     return True
         return False
-
 
