@@ -3,6 +3,7 @@
 from User.models import User, Token
 from rest_framework import serializers
 
+
 class TokenField(serializers.RelatedField):
     def to_representation(self, value):
         token = value.token
@@ -11,12 +12,14 @@ class TokenField(serializers.RelatedField):
         else:
             return token
 
+
 class TokenSerializer(serializers.Serializer):
-    token = serializers.CharField(max_length=32, read_only=True)
+    token = serializers.CharField(max_length=32, read_only=True, required=False)
 
     class Meta:
         model = Token
         fields = ('token')
+
 
 class UserSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
@@ -24,7 +27,7 @@ class UserSerializer(serializers.Serializer):
     password = serializers.CharField(max_length=20, required=True)
     email = serializers.EmailField(allow_blank=False)
     status = serializers.IntegerField(read_only=False, required=False)
-    token = TokenField(queryset=User.objects.all()[0])
+    token = TokenField(queryset=User.objects.all(), required=False)
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
@@ -40,4 +43,3 @@ class UserSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'password', 'email', 'status', 'token')
-

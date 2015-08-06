@@ -4,6 +4,9 @@
 sessionTimeout = 500
 defaulTokenString = u'logout'
 
+# Session expired imports
+from django.contrib.sessions.models import Session
+
 from django.db import models
 from hashlib import sha1, md5
 from django.core.validators import EmailValidator
@@ -14,6 +17,7 @@ from random import choice
 from django.utils import timezone
 
 
+## TODO move as class method ##
 def defaultToken():
     md5token = (md5(defaulTokenString)).hexdigest()
     return md5token
@@ -38,10 +42,21 @@ class Token(models.Model):
 
 class User(models.Model):
     username = models.CharField(max_length=20, blank=False, unique=True, verbose_name=u"Login")
-    password = models.CharField(max_length=100, blank=False, unique=True, verbose_name=u"Password")
+    _password = models.CharField(db_column="password", max_length=100, blank=False, unique=True,
+                                 verbose_name=u"Password")
     email = models.EmailField(blank=False, verbose_name="E-mail")
     status = models.IntegerField(blank=False, default=0)
     token = models.ForeignKey(Token, related_name='token_md5')
+
+    # Password automatically SHA1ing
+    @property
+    def password(self):
+        return self._password
+
+    # Automatically setter
+    @password.setter
+    def password(self, value):
+        self._password = self.passwordAsSHA1(value)
 
     def createNewToken(self):
         token = Token()
@@ -49,10 +64,9 @@ class User(models.Model):
         return token
 
     def save(self, *args, **kwargs):
-        # Cheking if not null
-        if not self.password:
-            self.password = self.passwordAsSHA1(self.password)
-        if not self.token:
+        try:
+            token = self.token
+        except Token.DoesNotExist:
             self.token = self.createNewToken()
         if self.status < -1 and self.status > 4:
             self.status = 0
@@ -61,7 +75,7 @@ class User(models.Model):
     def saveUserObject(self, username, password, email):
         if self.validate(username, password, email):
             self.username = username
-            self.password = self.passwordAsSHA1(password)
+            self.password = password
             self.email = email
             self.status = 0
             self.token = self.createNewToken()
@@ -147,3 +161,5 @@ class User(models.Model):
                 if user.status >= 0:
                     return True
         return False
+
+

@@ -32,7 +32,8 @@ def login(request):
             user.login(request)
             msg = 'Login successfully'
             print msg
-            return redirect('/users/')
+            # Return token
+            return redirect('/token/')
         else:
             msg = 'Error. Wrong password.'
             return render_to_response('login.html', {'msg': msg}, context_instance=RequestContext(request))
